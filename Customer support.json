@@ -1,0 +1,447 @@
+{
+  "name": "Customer support",
+  "nodes": [
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4.1-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        -112,
+        96
+      ],
+      "id": "ebd1a216-b64f-4b2d-9f53-a184b56e25d1",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "sNzbXkEFB5vfX0j8",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        272,
+        240
+      ],
+      "id": "87655445-9df4-4e69-887d-d1ef064c7d9e",
+      "name": "No Operation, do nothing"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4.1-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        368,
+        -16
+      ],
+      "id": "b35c8f70-4b1b-4959-9d76-5152b79d048e",
+      "name": "OpenAI Chat Model1",
+      "credentials": {
+        "openAiApi": {
+          "id": "sNzbXkEFB5vfX0j8",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "retrieve-as-tool",
+        "toolDescription": "Call this tool to access database",
+        "pineconeIndex": {
+          "__rl": true,
+          "value": "ragchatbot2",
+          "mode": "list",
+          "cachedResultName": "ragchatbot2"
+        },
+        "options": {
+          "pineconeNamespace": "FAQ"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStorePinecone",
+      "typeVersion": 1.3,
+      "position": [
+        464,
+        0
+      ],
+      "id": "9ff427dd-cd51-4a67-a759-c0df3558b40e",
+      "name": "Pinecone Vector Store",
+      "credentials": {
+        "pineconeApi": {
+          "id": "N1fPtuvSx2mf0heD",
+          "name": "PineconeApi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        512,
+        96
+      ],
+      "id": "a4df083a-acb6-49ee-a9db-b03a27604b09",
+      "name": "Embeddings OpenAI",
+      "credentials": {
+        "openAiApi": {
+          "id": "sNzbXkEFB5vfX0j8",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "reply",
+        "messageId": "={{ $('Email received from potential customer').item.json.id }}",
+        "emailType": "text",
+        "message": "={{ $json.output }}",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        816,
+        -144
+      ],
+      "id": "dcca5b52-2dd2-4fd3-b4d7-5ad1013e8076",
+      "name": "Reply to customer",
+      "webhookId": "1462b352-2e5e-4107-a57f-a1e63eed3044",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "VD0KeOKob1FRyqz5",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $('Email received from potential customer').item.json.text }}\n",
+        "options": {
+          "systemMessage": "=You are a receptionist at Praxis Dr Neumann. Customer may send you mail regarding our services, FAQs or our opening hours. Use the knowledge base in the tools given to answer the question to customer in a professional but friendly way. \nIf customer mentioning wanting to book an appointment on a day or asking for availability to any day, point them to this DoctorLib url and explain it can be checked and booked here: https://www.doctorlib.com/yxcyx/booking/appointment?date=2025-08-01&time=14:00&doctorId=dr-3421\n\nIf they show interest tell them are you interested in booking and point them to the URL.\n\nSign off as Anh Khoa from Praxis Dr Neumann"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.1,
+      "position": [
+        384,
+        -192
+      ],
+      "id": "ed97a69a-d99a-4ec0-b77c-acb8b08a623a",
+      "name": "Customer Service Agent"
+    },
+    {
+      "parameters": {
+        "inputText": "={{ $json.text }}",
+        "categories": {
+          "categories": [
+            {
+              "category": "Customer support",
+              "description": "Emails related to customer asking questions about our FAQs or our services, how treatment are carried out, what time are we opened"
+            },
+            {
+              "category": "Non customer support",
+              "description": "Mail does not appear to be a customer interested in visiting praxis Dr Neumann"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.textClassifier",
+      "typeVersion": 1.1,
+      "position": [
+        -96,
+        -64
+      ],
+      "id": "e50366c9-7648-405b-bf69-4e688bc845a5",
+      "name": "Extract data from customer's mail"
+    },
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "simple": false,
+        "filters": {
+          "readStatus": "unread"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmailTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -288,
+        -48
+      ],
+      "id": "a1851635-879b-4d04-b06d-224b555fcfc6",
+      "name": "Email received from potential customer",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "VD0KeOKob1FRyqz5",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "markAsUnread",
+        "messageId": "={{ $('Email received from potential customer').item.json.id }}"
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        992,
+        -112
+      ],
+      "id": "32c2c3cc-8a30-48d4-8268-84e6766d57ba",
+      "name": "Mark a message as unread",
+      "webhookId": "e43e2403-3e8f-4938-bc35-ae6e36d157ec",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "VD0KeOKob1FRyqz5",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://www.googleapis.com/calendar/v3/freeBusy",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "oAuth2Api",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "ContentType",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{\n  \"timeMin\": \"2025-08-01T10:00:00Z\",\n  \"timeMax\": \"2025-08-01T11:00:00Z\",\n  \"items\": [\n    {\n      \"id\": \"0523685656b4902fc019d88e31879b409dd2fc6a3c8dd2a765ee68053ef8e8c4@group.calendar.google.com\"\n    }\n  ]\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.2,
+      "position": [
+        672,
+        1376
+      ],
+      "id": "a81bc481-de81-4d96-950d-959edb2c20e2",
+      "name": "HTTP Request",
+      "credentials": {
+        "oAuth2Api": {
+          "id": "HRexeuozLyGr6CKT",
+          "name": "Google API"
+        }
+      }
+    }
+  ],
+  "pinData": {
+    "Email received from potential customer": [
+      {
+        "json": {
+          "id": "1985b4762a905328",
+          "threadId": "1985b4762a905328",
+          "labelIds": [
+            "UNREAD",
+            "IMPORTANT",
+            "CATEGORY_PERSONAL",
+            "INBOX"
+          ],
+          "sizeEstimate": 6525,
+          "headers": {
+            "delivered-to": "Delivered-To: pugngao11@gmail.com",
+            "received": "Received: from mail-sor-f41.google.com (mail-sor-f41.google.com. [209.85.220.41])\r\n        by mx.google.com with SMTPS id 586e51a60fabf-3071350d101sor1706819fac.12.2025.07.30.05.21.01\r\n        for <pugngao11@gmail.com>\r\n        (Google Transport Security);\r\n        Wed, 30 Jul 2025 05:21:01 -0700 (PDT)",
+            "x-received": "X-Received: by 2002:a05:6870:e316:b0:2ff:8fd9:6dcd with SMTP id\r\n 586e51a60fabf-30785a84bdemr1487759fac.3.1753878060904; Wed, 30 Jul 2025\r\n 05:21:00 -0700 (PDT)",
+            "arc-seal": "ARC-Seal: i=1; a=rsa-sha256; t=1753878061; cv=none;\r\n        d=google.com; s=arc-20240605;\r\n        b=lxXw71QP9h4V9at2BQBnvv1oGWp6oC9Xk6T3YdStLBodJ+D7h2Zo4iYWrW3EYlWo/p\r\n         LSs5BtckfO6WoeYphhIR3dfum8cP+xc9/sJjo4VV+oxk0RrGfT7u9HTHxs+Zs9FMZO1S\r\n         t/jIv6l15rEm7+nRgTH7HLP/Eb7ogUfonIlSQJzxpOhwjX+MZIMyhHuUohyYFe+q4MeI\r\n         pvA4sEhUBE35tckDxw3AI1mVPBvkgq6BA+M2TifbSuPyFagVSh53m5fc3H0h9zMsPY9w\r\n         bsYEFUe9d/sS9XEI2txVuEjmp8+MbZfW3ipnG+tZBgiiHxt02WrEIpaH6RCbPYugr8t3\r\n         te0w==",
+            "arc-message-signature": "ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;\r\n        h=to:subject:message-id:date:from:mime-version:dkim-signature;\r\n        bh=pERzzHcM+WeTfHt0/9kMT6P0VYL8wFaWWywe01vxQy8=;\r\n        fh=J7PsoEBJ7HsbIe0ZTnoCqmZ8dkV9fLZCussqCQ0+OSw=;\r\n        b=VZVj0sUV2W/SVaPoZXZ2jvLOvl162iN/glPKFgt7/qsAQNPZCnz5B6MXxvHNVs0MTD\r\n         XCdkXIMvSWogIWDXARhBe57H13uIeoseAo3JKslJ4wroiLDotqXS3NwJd0AcdPsYhfI/\r\n         vXYPo9AinoAikkPxGl9yGrc+DQT26yjH37AFGB4Cd6in1DM+pxt16Yg+mX8zEffYBUiO\r\n         o+GdJoeO4zZXJlRPipIAF3KHhR+nmHffrOTEJ6lxqNz9L3jFDI14f1/0FaHVKOTW2t6I\r\n         6h0pYGbhz94goD+Ul2NPWi7z39TKkAQ7C+BnovVOJ5z17AkYP+L70dgJWqul7LhEn9Ri\r\n         IMvw==;\r\n        dara=google.com",
+            "arc-authentication-results": "ARC-Authentication-Results: i=1; mx.google.com;\r\n       dkim=pass header.i=@gmail.com header.s=20230601 header.b=AKLY3H8V;\r\n       spf=pass (google.com: domain of khoa.dang.career@gmail.com designates 209.85.220.41 as permitted sender) smtp.mailfrom=khoa.dang.career@gmail.com;\r\n       dmarc=pass (p=NONE sp=QUARANTINE dis=NONE) header.from=gmail.com;\r\n       dara=pass header.i=@gmail.com",
+            "return-path": "Return-Path: <khoa.dang.career@gmail.com>",
+            "received-spf": "Received-SPF: pass (google.com: domain of khoa.dang.career@gmail.com designates 209.85.220.41 as permitted sender) client-ip=209.85.220.41;",
+            "authentication-results": "Authentication-Results: mx.google.com;\r\n       dkim=pass header.i=@gmail.com header.s=20230601 header.b=AKLY3H8V;\r\n       spf=pass (google.com: domain of khoa.dang.career@gmail.com designates 209.85.220.41 as permitted sender) smtp.mailfrom=khoa.dang.career@gmail.com;\r\n       dmarc=pass (p=NONE sp=QUARANTINE dis=NONE) header.from=gmail.com;\r\n       dara=pass header.i=@gmail.com",
+            "dkim-signature": "DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;\r\n        d=gmail.com; s=20230601; t=1753878061; x=1754482861; dara=google.com;\r\n        h=to:subject:message-id:date:from:mime-version:from:to:cc:subject\r\n         :date:message-id:reply-to;\r\n        bh=pERzzHcM+WeTfHt0/9kMT6P0VYL8wFaWWywe01vxQy8=;\r\n        b=AKLY3H8VIoni+wt1IRt80Adcdi4eXqN1yYOR7u/Z+Ayia6flkM+VJ/J8vRPXQ4/cRi\r\n         iPAPGPLmErgyNbv5hvzj0Esl/GXZXFS/RV8EK5/C/dVm4wAGPd2ZExFAfWu6Guj7MPUN\r\n         FKonQDTgGbmI4qhirZmCVEWYsFLEoYOeaDzfCv7ZEwZ4cN3xVKPa0rlNpxr/tV0ZbgZA\r\n         L43U6gpIMtGRKtmhUQFyyUiwbTLNVExCzjCTGGpBw0IHjLAVtguFJ3o1lXr4XI/o5VFi\r\n         F8uj8VXRuZS3Gl5FGc6bQaKbJtxcue5Qq/pDX91oB2WIF/NOSsLTFjbtM+FAuy/7qncJ\r\n         cgaw==",
+            "x-google-dkim-signature": "X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;\r\n        d=1e100.net; s=20230601; t=1753878061; x=1754482861;\r\n        h=to:subject:message-id:date:from:mime-version:x-gm-message-state\r\n         :from:to:cc:subject:date:message-id:reply-to;\r\n        bh=pERzzHcM+WeTfHt0/9kMT6P0VYL8wFaWWywe01vxQy8=;\r\n        b=MVGpEXnjRMT1W8hyyqHsSLovR9FJ3eiTPEtW1UXoW1lPwFsz+2p5mtjndw0GUsEw6l\r\n         NngZ2nPK9MQDrgArVEVClqEWFweoFOE6eFI9zdH/mFIpxHfvrPDR13y075AGYh7RQf5L\r\n         WVdXXRdPsmM7sAr9pNrgGKqLFTFlsqB8mmyDNTaMfQuFRr933IerM/hBklDSIeeyM5En\r\n         a+UIQJB9+PSduEQ6EEGxjOHF8rDo8+vrNt9ApnwJYozfLbkbGn8oFILjNlH1P4qSz6k+\r\n         dhmEfVJk2qfchLB9cJ3NbgkN2iVcoKGMte7Wmj1OO3I1oZIgzo5PuoBZR1ujyLzePPxq\r\n         hSHg==",
+            "x-gm-message-state": "X-Gm-Message-State: AOJu0YwETYO03m84yjAAOxy6DL0nb6PseKghyt8g4jQwoJDU9EhT/E5S\r\n\tMCGdmhW6t2LNHgXaqY5SdrlFGOvf3CWIeQojbT5XPYl9mQBS4BCpWv/FdMns5GNLDeKkOgnYCsP\r\n\tQR8KQBzjBc1D4TGrmX9sXp9dots4Lu8wOUQ==",
+            "x-gm-gg": "X-Gm-Gg: ASbGncvKudr87156XBCw/WenvHlZLzr04MzUYTjTJQEFM7mZNAqiui6tluzxY4KMosX\r\n\ttdrxw/ONbIA2Laxes8+Mitda0ZHA7neQbxCUNsNk0R077o03rOe06TAgVcMY3zkBVOJcZoGPKC5\r\n\tKffmDoyFUDF2KfGDsPeC5vuJwOflzOrulUojL5Fh2cw7Q9KrBgMjPa2552/RnP1R7leJlpjqUqN\r\n\txXjF8A=",
+            "x-google-smtp-source": "X-Google-Smtp-Source: AGHT+IGN6UEeh2iJ133vdYoZk398UfZ+wqkp9FIaEenPsTWvfpMZYEE7Qmv0oB61I61iU8BqRTg+GAhz2SAt+KnSYmM=",
+            "mime-version": "MIME-Version: 1.0",
+            "from": "From: Anh Khoa Dang <khoa.dang.career@gmail.com>",
+            "date": "Date: Wed, 30 Jul 2025 14:20:49 +0200",
+            "x-gm-features": "X-Gm-Features: Ac12FXwnLVn5_EJUaIKwYedHrJdP4VIQtYdNW86FOR2exAsaaSEoRlvk-i7vSB8",
+            "message-id": "Message-ID: <CAM=+uiZJkEqS9zPhY-u4p_pTuqF731WCZm3u=o-TDSUnrx7kKQ@mail.gmail.com>",
+            "subject": "Subject: Question about treatment at the clinic",
+            "to": "To: pugngao11@gmail.com",
+            "content-type": "Content-Type: multipart/alternative; boundary=\"000000000000ccd727063b248ef3\""
+          },
+          "html": "<div dir=\"ltr\">Dear Dr Neumann Clinic,<br><br>I have severe back pain and looking for a clinic to treat it. Do you offer to treat backpain in your clinic? Could you tell me more about the procedure and method for back pain treatment in your clinics?<br><br>Furthermore do you offer vaccination? I&#39;m looking for measles vaccination for my daughter. <br><br>Can I book an appointment at Friday 2pm? <div><br></div><div>Thank you for your support</div></div>\n",
+          "text": "Dear Dr Neumann Clinic,\n\nI have severe back pain and looking for a clinic to treat it. Do you offer\nto treat backpain in your clinic? Could you tell me more about the\nprocedure and method for back pain treatment in your clinics?\n\nFurthermore do you offer vaccination? I'm looking for measles vaccination\nfor my daughter.\n\nCan I book an appointment at Friday 2pm?\n\nThank you for your support\n",
+          "textAsHtml": "<p>Dear Dr Neumann Clinic,</p><p>I have severe back pain and looking for a clinic to treat it. Do you offer<br/>to treat backpain in your clinic? Could you tell me more about the<br/>procedure and method for back pain treatment in your clinics?</p><p>Furthermore do you offer vaccination? I&apos;m looking for measles vaccination<br/>for my daughter.</p><p>Can I book an appointment at Friday 2pm?</p><p>Thank you for your support</p>",
+          "subject": "Question about treatment at the clinic",
+          "date": "2025-07-30T12:20:49.000Z",
+          "to": {
+            "value": [
+              {
+                "address": "pugngao11@gmail.com",
+                "name": ""
+              }
+            ],
+            "html": "<span class=\"mp_address_group\"><a href=\"mailto:pugngao11@gmail.com\" class=\"mp_address_email\">pugngao11@gmail.com</a></span>",
+            "text": "pugngao11@gmail.com"
+          },
+          "from": {
+            "value": [
+              {
+                "address": "khoa.dang.career@gmail.com",
+                "name": "Anh Khoa Dang"
+              }
+            ],
+            "html": "<span class=\"mp_address_group\"><span class=\"mp_address_name\">Anh Khoa Dang</span> &lt;<a href=\"mailto:khoa.dang.career@gmail.com\" class=\"mp_address_email\">khoa.dang.career@gmail.com</a>&gt;</span>",
+            "text": "\"Anh Khoa Dang\" <khoa.dang.career@gmail.com>"
+          },
+          "messageId": "<CAM=+uiZJkEqS9zPhY-u4p_pTuqF731WCZm3u=o-TDSUnrx7kKQ@mail.gmail.com>"
+        }
+      }
+    ]
+  },
+  "connections": {
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Extract data from customer's mail",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Customer Service Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pinecone Vector Store": {
+      "ai_tool": [
+        [
+          {
+            "node": "Customer Service Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings OpenAI": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Pinecone Vector Store",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Customer Service Agent": {
+      "main": [
+        [
+          {
+            "node": "Reply to customer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract data from customer's mail": {
+      "main": [
+        [
+          {
+            "node": "Customer Service Agent",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "No Operation, do nothing",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Email received from potential customer": {
+      "main": [
+        [
+          {
+            "node": "Extract data from customer's mail",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Reply to customer": {
+      "main": [
+        [
+          {
+            "node": "Mark a message as unread",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "ai_tool": [
+        []
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "f0bd3572-11d9-48e7-a3f6-b5d6048c8f39",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "473df4957c7b111425fa1bedd16d6afc129e19aa0ab8d4a5b9391d55ba205d7c"
+  },
+  "id": "QF7Ak4LWhZ31oDwF",
+  "tags": []
+}
